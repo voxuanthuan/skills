@@ -14,31 +14,31 @@ Custom agent skills by Minh Tran. All skills are prefixed with `mt:` (Minh Tran)
 
 ```bash
 # Claude Code
-npx skills add minhtranin/mt-skills -a claude-code
+npx skills add voxuanthuan/skills -a claude-code
 
 # OpenCode
-npx skills add minhtranin/mt-skills -a opencode
+npx skills add voxuanthuan/skills -a opencode
 
 # Antigravity
-npx skills add minhtranin/mt-skills -a antigravity
+npx skills add voxuanthuan/skills -a antigravity
 ```
 
 ### Install to all three agents at once
 
 ```bash
-npx skills add minhtranin/mt-skills -a claude-code -a opencode -a antigravity
+npx skills add voxuanthuan/skills -a claude-code -a opencode -a antigravity
 ```
 
 ### Install globally (available across all projects)
 
 ```bash
-npx skills add minhtranin/mt-skills -g -a claude-code -a opencode -a antigravity
+npx skills add voxuanthuan/skills -g -a claude-code -a opencode -a antigravity
 ```
 
 ### Install a single skill
 
 ```bash
-npx skills add minhtranin/mt-skills --skill "mt:commit-push-pr" -a claude-code -a opencode -a antigravity
+npx skills add voxuanthuan/skills --skill "mt:commit-push-pr" -a claude-code -a opencode -a antigravity
 ```
 
 ## Compatibility
