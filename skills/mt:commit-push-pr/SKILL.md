@@ -42,12 +42,27 @@ Based on the above changes, execute ALL of the following in a single message:
    git push -u origin HEAD
    ```
 
-5. **PR** — Create a pull request:
+5. **Label** — Determine the PR label based on the target base branch:
+   - `develop` → label `development`
+   - starts with `release` (e.g. `release/1.0`, `release-1.0`) → label `uat`
+   - `main` → label `production`
+   - anything else → no label
+
+6. **PR** — Create a pull request with a custom body:
    ```bash
-   gh pr create --base <base-branch> --fill
+   gh pr create --base <base-branch> --title "<commit-message>" --body "<body>" --label <label>
    ```
    - `--base` comes from the argument, or defaults to `main`
-   - Use `--fill` to auto-generate title and body from the commit
+   - `--title` is the commit message (same as step 3)
+   - Include `--label <label>` only if a label applies (from step 5)
+   - If the label does not exist in the repo, create it first:
+     ```bash
+     gh label create <label> --force
+     ```
+   - Generate `--body` as a **Summary only** (no Test Plan section):
+     - List what was added/changed based on the diff
+     - **Exclude any mention of `schema.json` changes** — these are auto-generated from the backend and do not need to be listed
+     - Do NOT include a "Test plan" section
 
 ## Rules
 
