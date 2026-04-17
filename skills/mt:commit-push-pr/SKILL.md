@@ -11,7 +11,26 @@ Commit all changes, push to origin, and create a pull request.
 
 **Arguments:** $ARGUMENTS
 
-Parse the base branch from arguments. If empty, default to `main`.
+Parse arguments to determine intent:
+
+- **Core branches**: `main`, `master`, `develop`, or any branch matching `release*`
+- **Ticket branch**: anything else (e.g. a Jira ID like `GRAP-18760`)
+
+**If the argument looks like a ticket branch (not a core branch):**
+- The argument is the *feature branch* to checkout/use, NOT the base branch
+- If currently on a core branch (`main`, `master`, `develop`, `release*`), checkout that ticket branch:
+  ```bash
+  git checkout <argument>
+  ```
+- The base branch is then auto-detected (see below) from the checked-out branch
+
+**If the argument is a core branch or empty:**
+- Use it directly as the base branch
+- If empty, auto-detect by running:
+  ```bash
+  git log --format='%D' HEAD | grep -oE 'origin/[^ ,]+' | sed 's|origin/||' | head -1
+  ```
+  This finds the first remote branch ref in the commit history from HEAD. If nothing is found, fall back to `main`.
 
 ## Context
 
@@ -23,41 +42,41 @@ Parse the base branch from arguments. If empty, default to `main`.
 
 Based on the above changes, execute ALL of the following in a single message:
 
-1. **Branch** — If currently on `main` or `master`, create a new branch with a descriptive name based on the changes. Otherwise, stay on the current branch.
+1. **Checkout** — If the argument is a ticket branch and currently on a core branch, checkout the ticket branch first (as described above). Then proceed on that branch.
 
-2. **Stage** — Stage all changed files:
+2. **Branch** — If still on a core branch after step 1 (no argument given, or argument was a base branch), create a new branch with a descriptive name based on the changes. Otherwise, stay on the current branch.
+
+3. **Stage** — Stage all changed files:
    ```bash
    git add -A
    ```
 
-3. **Commit** — Create a single commit following the format:
+4. **Commit** — Create a single commit following the format:
    ```
    FEAT: {branch-name} <short description>
    ```
    - `{branch-name}` is the current branch name exactly as-is (e.g. `GRAP-18760`)
    - Example: `FEAT: GRAP-18760 clear note RichTextEditor after form submission`
 
-4. **Push** — Push the branch to origin:
+5. **Push** — Push the branch to origin:
    ```bash
    git push -u origin HEAD
    ```
 
-5. **Label** — Determine the PR label based on the target base branch:
-   - `develop` → label `development`
-   - starts with `release` (e.g. `release/1.0`, `release-1.0`) → label `uat`
+6. **Label** — Only apply a label when the target base branch is `main`:
    - `main` → label `production`
    - anything else → no label
 
-6. **PR** — Create a pull request with a custom body:
+7. **PR** — Create a pull request with a custom body:
    ```bash
-   gh pr create --base <base-branch> --title "<commit-message>" --body "<body>" --label <label>
+   gh pr create --base <base-branch> --title "<commit-message>" --body "<body>" --label production
    ```
-   - `--base` comes from the argument, or defaults to `main`
+   - `--base` comes from the argument, or the auto-detected base branch (from git log decorations), or `main` as last resort
    - `--title` is the commit message (same as step 3)
-   - Include `--label <label>` only if a label applies (from step 5)
-   - If the label does not exist in the repo, create it first:
+   - Only include `--label production` when the base branch is `main`
+   - If the `production` label does not exist in the repo, create it first:
      ```bash
-     gh label create <label> --force
+     gh label create production --force
      ```
    - Generate `--body` as a **Summary only** (no Test Plan section):
      - List what was added/changed based on the diff
