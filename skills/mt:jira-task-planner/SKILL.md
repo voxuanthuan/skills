@@ -1,13 +1,13 @@
 ---
-name: mt:grapple-jira-planner
-description: "(Minh Tran) Scan assigned Grapple Jira issues in In Progress or Selected for Development, analyze business/wiki and code context across Grapple repos, then write implementation plans into Obsidian."
+name: mt:jira-task-planner
+description: "(Minh Tran) Scan assigned Jira issues, analyze business/wiki and code context, then write implementation plans into a user-configured notes directory."
 argument-hint: "[optional JQL override or issue keys]"
 allowed-tools: [Bash, Read, Write, Edit, Glob, Grep, WebFetch, WebSearch, TodoWrite, AskUserQuestion]
 ---
 
-# mt:grapple-jira-planner
+# mt:jira-task-planner
 
-Scan the user's active Grapple Jira work, research the relevant wiki/business and code context, and create one Obsidian implementation plan per Jira issue.
+Scan the user's active Jira work, research relevant business/wiki and code context, and create one implementation plan note per Jira issue.
 
 **Arguments:** `$ARGUMENTS`
 
@@ -16,26 +16,32 @@ Scan the user's active Grapple Jira work, research the relevant wiki/business an
 Use this skill when the user asks to:
 
 - scan their Jira tasks in `In Progress` or `Selected for Development`
-- plan Grapple tasks before implementation
-- create/update Obsidian task planning notes for Grapple work
-- analyze Grapple Jira issues against business/wiki docs and these codebases:
-  - `grapple-core-app` — frontend admin side
-  - `grapple-website` — landing page
-  - `grapple-core-api` — backend
+- plan Jira tasks before implementation
+- create or update task planning notes in Obsidian or another Markdown notes folder
+- analyze Jira issues against business/wiki docs and one or more related codebases
 
 ## Steps
 
 ### 1. Prepare workspace and access
 
 1. Create a todo list for this planning run.
-2. Verify these expected local paths exist before using them:
-   - Obsidian output directory: `/home/thuan/osidian/grapple/tasks`
-   - Repositories, wherever they are cloned locally:
-     - `grapple-core-app`
-     - `grapple-website`
-     - `grapple-core-api`
-3. If the user said a path should exist but it does not, stop and tell the user exactly what was expected and what was found. Do not silently recreate or substitute that path.
-4. Use available Jira/Wiki access in this order:
+2. Resolve the notes output directory in this order:
+   - `$TASK_PLANNER_OUTPUT_DIR`
+   - `$OBSIDIAN_TASKS_DIR`
+   - a path explicitly passed in `$ARGUMENTS`
+   - a path explicitly provided by the user in the current request
+3. Resolve related code repositories in this order:
+   - `$TASK_PLANNER_REPOS`, a colon-separated or newline-separated list of absolute repo paths
+   - `$PROJECT_REPOS`, a colon-separated or newline-separated list of absolute repo paths
+   - the current working directory if it is inside a git repository
+   - sibling git repositories under the parent directory of the current repo when the Jira issue clearly references them
+4. Resolve optional project metadata from:
+   - `$TASK_PLANNER_PROJECT_NAME`
+   - `$TASK_PLANNER_WIKI_HINTS`, comma-separated wiki spaces, page names, or URLs
+   - `$TASK_PLANNER_DEFAULT_JQL`
+5. Verify every resolved path exists before using it.
+6. If the user said a path should exist but it does not, stop and tell the user exactly what was expected and what was found. Do not silently recreate or substitute that path.
+7. Use available Jira/Wiki access in this order:
    - configured Jira/Confluence MCP tools, if present
    - authenticated browser session
    - environment variables or secrets:
@@ -43,7 +49,17 @@ Use this skill when the user asks to:
      - `JIRA_EMAIL`
      - `JIRA_API_TOKEN`
      - `WIKI_BASE_URL` or `CONFLUENCE_BASE_URL`
-5. If Jira or wiki access is missing, ask the user for access. Offer a temporary session secret and a permanent saved secret option.
+8. If Jira or wiki access is missing, ask the user for access. Offer a temporary session secret and a permanent saved secret option.
+
+Recommended environment variables:
+
+```bash
+export TASK_PLANNER_OUTPUT_DIR="/absolute/path/to/notes/tasks"
+export TASK_PLANNER_REPOS="/absolute/path/to/repo-one:/absolute/path/to/repo-two"
+export TASK_PLANNER_PROJECT_NAME="Project name"
+export TASK_PLANNER_WIKI_HINTS="Confluence space, product wiki URL, domain docs"
+export TASK_PLANNER_DEFAULT_JQL='assignee = currentUser() AND status in ("In Progress", "Selected for Development") ORDER BY priority DESC, updated DESC'
+```
 
 ### 2. Scan Jira issues
 
@@ -51,7 +67,9 @@ If `$ARGUMENTS` contains issue keys, plan only those issues.
 
 If `$ARGUMENTS` contains a JQL query, use it.
 
-Otherwise use this JQL:
+Otherwise use `$TASK_PLANNER_DEFAULT_JQL` if set.
+
+If no JQL is configured, use this default:
 
 ```jql
 assignee = currentUser()
@@ -71,17 +89,24 @@ For each issue, fetch at minimum:
 
 Skip Done/Closed/Cancelled issues unless they were explicitly passed in `$ARGUMENTS`.
 
-### 3. Classify affected Grapple surfaces
+### 3. Classify affected repositories and surfaces
 
-For each Jira issue, decide which codebases are likely affected:
+For each Jira issue, decide which resolved repositories and application surfaces are likely affected.
 
-- `grapple-core-app`: admin UI, dashboard, internal tools, forms, tables, user/admin workflows
-- `grapple-website`: public landing pages, marketing pages, SEO, public content
-- `grapple-core-api`: backend APIs, database, services, jobs, auth, integrations, business logic
+Use repo names, README files, package metadata, directory structure, Jira components, labels, and issue text to infer the role of each repository. Common roles include:
+
+- frontend application
+- public website or documentation site
+- backend API or service
+- worker or job processor
+- shared package or library
+- infrastructure/configuration
+- mobile app
+- data pipeline
 
 Use Jira components/labels first, then infer from description, acceptance criteria, routes, API names, domain terms, and linked issues.
 
-If ambiguous, inspect all three repos and record the ambiguity in the plan.
+If ambiguous, inspect all configured repos and record the ambiguity in the plan.
 
 ### 4. Research business/wiki context
 
@@ -114,24 +139,23 @@ For each affected repo:
 4. Record concrete file references using repo-relative paths and line numbers when available.
 5. Do not implement code during this skill. The deliverable is a plan.
 
-Recommended focus by repo:
+Recommended focus by surface:
 
-- `grapple-core-app`
+- Frontend application
   - routes/pages
-  - React components
+  - components
   - hooks/state management
   - API client calls
   - form validation
-  - admin permissions
+  - permissions
   - existing tests/stories
-- `grapple-website`
+- Public website or documentation site
   - page routes
-  - landing sections/components
   - content/data files
-  - SEO metadata
-  - tracking/analytics
+  - metadata/SEO
+  - analytics/tracking
   - responsive styling
-- `grapple-core-api`
+- Backend API or service
   - routes/controllers
   - services/use cases
   - serializers/DTOs
@@ -140,14 +164,20 @@ Recommended focus by repo:
   - permissions/auth
   - background jobs
   - API tests
+- Shared library
+  - exported interfaces
+  - consumers
+  - package build/test setup
+  - versioning or release notes
+- Infrastructure/configuration
+  - environment variables
+  - deployment manifests
+  - CI/CD workflows
+  - observability and alerts
 
-### 6. Write Obsidian task plans
+### 6. Write task plan notes
 
-Create one Markdown file per Jira issue in:
-
-```text
-/home/thuan/osidian/grapple/tasks
-```
+Create one Markdown file per Jira issue in the resolved notes output directory.
 
 Use this filename format:
 
@@ -170,8 +200,8 @@ status: In Progress
 priority: High
 type: Story
 repos:
-  - grapple-core-app
-  - grapple-core-api
+  - repo-name
+project: Project name
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 ---
@@ -198,24 +228,20 @@ Concise summary of the Jira description and acceptance criteria.
 - Source: wiki page title or URL
 
 ## Affected surfaces
-- `grapple-core-app`: why it is affected
-- `grapple-website`: why it is affected, or `Not expected`
-- `grapple-core-api`: why it is affected
+- `repo-name`: surface/role and why it is affected
+- `other-repo`: Not expected, or why it may be affected
 
 ## Code context
-### grapple-core-app
+### repo-name
 - `path/to/file.tsx:10-40` — why it matters
 
-### grapple-website
+### other-repo
 - Not expected / relevant files
-
-### grapple-core-api
-- `path/to/file.ts:20-80` — why it matters
 
 ## Implementation plan
 1. Step-by-step implementation sequence.
-2. Include exact repos and likely files.
-3. Include data/API contract changes before UI steps.
+2. Include exact repos and likely files where possible.
+3. Include data/API contract changes before dependent UI/client steps.
 4. Include migration/backfill steps if needed.
 
 ## Test plan
@@ -230,9 +256,9 @@ Concise summary of the Jira description and acceptance criteria.
 
 ## Checklist
 - [ ] Confirm requirements and edge cases
-- [ ] Implement backend changes if needed
-- [ ] Implement frontend/admin changes if needed
-- [ ] Implement landing page changes if needed
+- [ ] Implement service/backend changes if needed
+- [ ] Implement frontend/client changes if needed
+- [ ] Implement content/site changes if needed
 - [ ] Add/update tests
 - [ ] Run lint/typecheck/tests
 - [ ] Create PR(s)
@@ -249,17 +275,17 @@ Concise summary of the Jira description and acceptance criteria.
 Create or update:
 
 ```text
-/home/thuan/osidian/grapple/tasks/_index.md
+<resolved-notes-output-directory>/_index.md
 ```
 
 Include a table:
 
 ```markdown
-# Grapple Jira task plans
+# Jira task plans
 
 | Jira | Status | Priority | Repos | Plan |
 | ---- | ------ | -------- | ----- | ---- |
-| GRAP-123 | In Progress | High | api, app | [[GRAP-123 - summary]] |
+| PROJ-123 | In Progress | High | api, app | [[PROJ-123 - summary]] |
 ```
 
 ### 8. Completion report
@@ -267,7 +293,8 @@ Include a table:
 When finished, tell the user:
 
 - how many Jira issues were scanned
-- how many Obsidian plans were created/updated
+- how many Markdown plans were created/updated
 - the exact output directory
-- any missing Jira/wiki/repo context
+- which repositories were used for code context
+- any missing Jira/wiki/repo/path context
 - open questions or blockers
