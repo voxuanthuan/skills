@@ -7,6 +7,7 @@ Custom agent skills by Minh Tran. All skills are prefixed with `mt:` (Minh Tran)
 | Skill | Description |
 |-------|-------------|
 | [mt:commit-push-pr](./skills/mt:commit-push-pr/) | Commit, push, and open a PR in one shot |
+| [mt:grapple-jira-planner](./skills/mt:grapple-jira-planner/) | Scan Grapple Jira tasks and write implementation plans to Obsidian |
 
 ## Install
 
@@ -39,6 +40,10 @@ npx skills add voxuanthuan/skills -g -a claude-code -a opencode -a antigravity
 
 ```bash
 npx skills add voxuanthuan/skills --skill "mt:commit-push-pr" -a claude-code -a opencode -a antigravity
+```
+
+```bash
+npx skills add voxuanthuan/skills --skill "mt:grapple-jira-planner" -a claude-code -a opencode -a antigravity
 ```
 
 ## Compatibility
