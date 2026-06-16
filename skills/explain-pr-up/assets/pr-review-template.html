@@ -125,9 +125,9 @@
     .toc a:hover { color: var(--clay); }
     .toc .sub { padding-left: 12px; color: var(--gray-500); font-size: 12.5px; }
 
-    /* ---------- TL;DR ---------- */
+    /* ---------- summary ---------- */
 
-    .tldr {
+    .summary-box {
       background: var(--white);
       border: 1.5px solid var(--gray-300);
       border-left: 4px solid var(--clay);
@@ -136,7 +136,7 @@
       margin-bottom: 48px;
       max-width: 760px;
     }
-    .tldr .k {
+    .summary-box .k {
       font-family: var(--mono);
       font-size: 11px;
       text-transform: uppercase;
@@ -144,7 +144,7 @@
       color: var(--gray-500);
       margin-bottom: 8px;
     }
-    .tldr p { font-size: 15px; color: var(--slate); }
+    .summary-box p { font-size: 15px; color: var(--slate); line-height: 1.6; }
 
     /* ---------- before / after ---------- */
 
@@ -417,17 +417,24 @@
     <div class="layout">
       <main>
 
-        <!-- ==================== TL;DR ==================== -->
+        <!-- ==================== SUMMARY ==================== -->
+        <!-- Write 2-3 short sentences. One idea per sentence.
+             Use simple words. Say what changed and why.
+             Example: "Sync used to erase names when the source sent a blank.
+             Now we keep the old name. Tests cover blank and non-blank cases." -->
 
-        <div class="tldr">
-          <div class="k">TL;DR</div>
-          <p>{{TLDR_TEXT}}</p>
+        <div class="summary-box">
+          <div class="k">Summary</div>
+          <p>{{SUMMARY_TEXT}}</p>
         </div>
 
         <!-- ==================== BEFORE / AFTER ==================== -->
 
         <section id="before-after">
           <h2>Before &amp; After</h2>
+          <!-- Keep each bullet to one short line.
+               Describe what the user sees, not what the code does.
+               Example: "Names disappear from the form" not "adapter overwrites nested object" -->
           <p class="lede">{{BEFORE_AFTER_CONTEXT}}</p>
 
           <div class="ba">
@@ -484,6 +491,7 @@
                 <span class="stat"><span class="add">+{{FILE_1_ADD}}</span> <span class="del">&minus;{{FILE_1_DEL}}</span></span>
               </summary>
               <div class="file-body">
+                <!-- One sentence: why did this file change? Keep it simple. -->
                 <p class="why"><strong>{{FILE_1_WHY_BOLD}}</strong> {{FILE_1_WHY_TEXT}}</p>
                 <div class="code"><pre>{{FILE_1_CODE}}</pre></div>
               </div>
@@ -571,6 +579,7 @@
 
       <aside class="toc">
         <div class="t-head">On this page</div>
+        <a href="#summary">Summary</a>
         <a href="#before-after">Before &amp; After</a>
         <a href="#risk-map">Risk map</a>
         <a href="#files">File-by-file</a>
