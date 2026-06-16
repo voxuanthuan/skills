@@ -7,6 +7,7 @@ Custom agent skills by Minh Tran. Personal workflow skills use the `mt:` prefix;
 | Skill | Description |
 |-------|-------------|
 | [explain-issue-html](./skills/explain-issue-html/) | Create standalone HTML explanation artifacts for confusing bugs, incidents, code behavior, API/cache/state issues, or technical problems |
+| [explain-pr-up](./skills/explain-pr-up/) | Create standalone HTML artifacts that present a PR for review with before/after diffs, risk map, and file-by-file tour |
 | [mt:commit-push-pr](./skills/mt:commit-push-pr/) | Commit, push, and open a PR in one shot |
 
 ## Install
@@ -41,6 +42,7 @@ npx skills add voxuanthuan/skills -g -a claude-code -a opencode -a antigravity
 ```bash
 npx skills add voxuanthuan/skills --skill "mt:commit-push-pr" -a claude-code -a opencode -a antigravity
 npx skills add voxuanthuan/skills --skill "explain-issue-html" -a claude-code -a opencode -a antigravity
+npx skills add voxuanthuan/skills --skill "explain-pr-up" -a claude-code -a opencode -a antigravity
 ```
 
 ## Compatibility
