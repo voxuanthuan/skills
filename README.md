@@ -1,11 +1,12 @@
-# mt-skills
+# skills
 
-Custom agent skills by Minh Tran. All skills are prefixed with `mt:` (Minh Tran).
+Custom agent skills by Minh Tran. Personal workflow skills use the `mt:` prefix; general-purpose skills may use descriptive unprefixed names.
 
 ## Skills
 
 | Skill | Description |
 |-------|-------------|
+| [explain-issue-html](./skills/explain-issue-html/) | Create standalone HTML explanation artifacts for confusing bugs, incidents, code behavior, API/cache/state issues, or technical problems |
 | [mt:commit-push-pr](./skills/mt:commit-push-pr/) | Commit, push, and open a PR in one shot |
 
 ## Install
@@ -39,6 +40,7 @@ npx skills add voxuanthuan/skills -g -a claude-code -a opencode -a antigravity
 
 ```bash
 npx skills add voxuanthuan/skills --skill "mt:commit-push-pr" -a claude-code -a opencode -a antigravity
+npx skills add voxuanthuan/skills --skill "explain-issue-html" -a claude-code -a opencode -a antigravity
 ```
 
 ## Compatibility
