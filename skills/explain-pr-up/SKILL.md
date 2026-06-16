@@ -79,7 +79,7 @@ Include these sections unless the PR clearly does not need one:
 - Serif headings (`ui-serif, Georgia`), sans body (`system-ui`), mono for code and paths.
 - Rounded 12px cards, 1.5px borders, minimal decoration.
 - Dark code blocks (`--slate` background) with warm off-white text.
-- Added lines: subtle olive background. Deleted lines: subtle clay background with strikethrough.
+- Added lines: visible olive background with green left border. Deleted lines: visible clay background with orange left border and strikethrough. Both should be clearly distinguishable from unchanged lines at a glance.
 - Responsive: single column below 900px.
 - No animations, no gradients, no decoration for decoration's sake.
 
