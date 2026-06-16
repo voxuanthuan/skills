@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{TITLE}}</title>
+    <style>
+      :root {
+        --paper: #f7f4ea;
+        --ink: #171612;
+        --muted: #665f52;
+        --line: #d8cfbb;
+        --panel: #fffdf7;
+        --bad: #b33a2f;
+        --bad-bg: #ffe8e2;
+        --good: #146f53;
+        --good-bg: #e2f1e8;
+        --info: #1d5c86;
+        --info-bg: #e4eef6;
+        --code: #171916;
+        --code-text: #f4f0df;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: linear-gradient(rgba(23, 22, 18, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(23, 22, 18, 0.04) 1px, transparent 1px),
+          var(--paper);
+        background-size: 28px 28px;
+        color: var(--ink);
+        font-family: Georgia, Cambria, "Times New Roman", Times, serif;
+        letter-spacing: 0;
+      }
+
+      .page {
+        width: min(1120px, calc(100vw - 32px));
+        margin: 0 auto;
+        padding: 32px 0 64px;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(300px, 0.8fr);
+        gap: 34px;
+        align-items: center;
+        min-height: 460px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        line-height: 1;
+        letter-spacing: 0;
+      }
+
+      h1 {
+        font-size: clamp(46px, 7vw, 96px);
+      }
+
+      h2 {
+        font-size: clamp(32px, 5vw, 58px);
+      }
+
+      h3 {
+        font-size: 24px;
+        line-height: 1.1;
+      }
+
+      p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 17px;
+        line-height: 1.55;
+      }
+
+      .lede {
+        margin-top: 20px;
+        font-size: 21px;
+        line-height: 1.45;
+      }
+
+      .tag,
+      code,
+      pre {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          "Liberation Mono", monospace;
+      }
+
+      .tag {
+        display: inline-flex;
+        margin-bottom: 16px;
+        padding: 6px 9px;
+        border: 1px solid var(--line);
+        background: var(--panel);
+        color: var(--info);
+        font-size: 12px;
+        text-transform: uppercase;
+      }
+
+      .section {
+        padding-top: 72px;
+      }
+
+      .section-head {
+        display: grid;
+        grid-template-columns: minmax(0, 0.8fr) minmax(320px, 1.2fr);
+        gap: 34px;
+        align-items: start;
+        margin-bottom: 22px;
+      }
+
+      .kicker {
+        margin-bottom: 10px;
+        color: var(--info);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          "Liberation Mono", monospace;
+        font-size: 12px;
+        text-transform: uppercase;
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        background: var(--panel);
+        padding: 20px;
+      }
+
+      .panel h3 {
+        margin-bottom: 10px;
+      }
+
+      .bad {
+        border-color: rgba(179, 58, 47, 0.42);
+        background: #fff7f5;
+      }
+
+      .good {
+        border-color: rgba(20, 111, 83, 0.42);
+        background: #f5fbf7;
+      }
+
+      .inline-code {
+        padding: 1px 5px;
+        border: 1px solid rgba(23, 22, 18, 0.16);
+        background: #eee6d5;
+      }
+
+      pre {
+        margin: 14px 0 0;
+        overflow: auto;
+        border: 1px solid #262822;
+        background: var(--code);
+        color: var(--code-text);
+        padding: 16px;
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .callout {
+        border-left: 7px solid var(--good);
+        background: var(--good-bg);
+        padding: 20px;
+      }
+
+      @media (max-width: 900px) {
+        .hero,
+        .section-head,
+        .grid-2 {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero">
+        <div>
+          <div class="tag">{{AUDIENCE}}</div>
+          <h1>{{TITLE}}</h1>
+          <p class="lede">{{ONE_SENTENCE_SUMMARY}}</p>
+        </div>
+        <aside class="panel">
+          <h3>Quick mental model</h3>
+          <p>{{MENTAL_MODEL}}</p>
+        </aside>
+      </section>
+
+      <section class="section">
+        <div class="section-head">
+          <div>
+            <div class="kicker">Full Shape</div>
+            <h2>{{FULL_SHAPE_TITLE}}</h2>
+          </div>
+          <p>{{FULL_SHAPE_EXPLANATION}}</p>
+        </div>
+        <article class="panel bad">
+          <h3>Broken spot</h3>
+          <pre><code>{{FULL_QUERY_OR_CODE_WITH_BUG_MARKER}}</code></pre>
+        </article>
+      </section>
+
+      <section class="section">
+        <div class="section-head">
+          <div>
+            <div class="kicker">Before</div>
+            <h2>{{BEFORE_TITLE}}</h2>
+          </div>
+          <p>{{BEFORE_EXPLANATION}}</p>
+        </div>
+        <pre><code>{{BEFORE_ASCII_DIAGRAM}}</code></pre>
+      </section>
+
+      <section class="section">
+        <div class="section-head">
+          <div>
+            <div class="kicker">Fix</div>
+            <h2>{{FIX_TITLE}}</h2>
+          </div>
+          <p>{{FIX_EXPLANATION}}</p>
+        </div>
+        <div class="grid-2">
+          <article class="panel bad">
+            <h3>Before: breaks</h3>
+            <pre><code>{{BEFORE_SNIPPET}}</code></pre>
+          </article>
+          <article class="panel good">
+            <h3>After: works</h3>
+            <pre><code>{{AFTER_SNIPPET}}</code></pre>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-head">
+          <div>
+            <div class="kicker">After</div>
+            <h2>{{AFTER_TITLE}}</h2>
+          </div>
+          <p>{{AFTER_EXPLANATION}}</p>
+        </div>
+        <pre><code>{{AFTER_ASCII_DIAGRAM}}</code></pre>
+      </section>
+
+      <section class="section">
+        <div class="callout">
+          <h3>One sentence version</h3>
+          <p>{{FINAL_SIMPLE_SUMMARY}}</p>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

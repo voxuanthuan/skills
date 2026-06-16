@@ -1,0 +1,4 @@
+interface:
+  display_name: "Explain Issue HTML"
+  short_description: "Create simple visual HTML issue explainers"
+  default_prompt: "Use $explain-issue-html to explain this bug from scratch as a standalone HTML artifact."
