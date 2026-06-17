@@ -41,11 +41,13 @@ Write the way `explain-issue-html` writes: short, plain, concrete.
    - **needs attention** — new core logic, tricky edge case, error handling, or security-sensitive.
 
 3. Write the PR story in plain language.
+   - **TL;DR**: A bullet list (5–7 items). Each bullet is one short sentence that a high-school student can understand. No jargon without a one-line definition first.
+   - **Flow diagram**: If the PR touches 2+ functions in a call chain, draw a horizontal block diagram. Each block = a function name. Blocks link to the file section below.
    - **Short summary**: 2–3 sentences. What changed? Why? Written so someone who has never seen this code can follow.
    - **Before / After**: what happened before this PR vs. what happens now. Use bullet points. Keep each bullet to one line.
    - **File-by-file tour**: most important file first. For each file:
      - One sentence: *why* this file changed (not just *what*).
-     - A code snippet showing the key change. Deleted lines and added lines should be visually distinct.
+     - A code snippet showing the key change with Claude Code–style colors (green = added, red = deleted).
    - **Review focus**: 2–3 numbered items. Point to the exact lines or decisions that matter most. Say why they matter.
 
 4. Build the HTML artifact.
@@ -63,15 +65,16 @@ Write the way `explain-issue-html` writes: short, plain, concrete.
 Include these sections unless the PR clearly does not need one:
 
 1. **Header** — PR number, title, branch → target, author, +/− line counts.
-2. **Short summary** — 2–3 plain sentences in a callout box.
-3. **Before / After** — Side-by-side panels. Short bullet points only.
-4. **Risk map** — Colored chips (safe / worth a look / needs attention) that link to file sections.
-5. **File tour** — Collapsible cards per file, each with:
+2. **TL;DR** — Bullet list of what changed. Each bullet is one short sentence. Write so a high-school student can follow. No jargon without explaining it first. Max 5–7 bullets.
+3. **Flow diagram** — A horizontal block-box diagram showing the execution flow of the code that changed. Each box is a function or module name. Boxes connect with arrows (→). Each box is clickable and scrolls to the matching file section. Only show when the PR touches 2+ functions in a call chain or data pipeline.
+4. **Before / After** — Side-by-side panels. Short bullet points only.
+5. **Risk map** — Colored chips (safe / worth a look / needs attention) that link to file sections.
+6. **File tour** — Collapsible cards per file, each with:
    - File path, badge (new/mod/del), +/− stats.
    - One sentence explaining *why* this file changed.
-   - A code block showing the diff with highlighted added/deleted lines.
-6. **Review focus** — Numbered cards with the 2–3 most important review points.
-7. **Checklist** (optional) — Interactive checkboxes for reviewer sign-off.
+   - A code block showing the diff with Claude Code–style coloring.
+7. **Review focus** — Numbered cards with the 2–3 most important review points.
+8. **Checklist** (optional) — Interactive checkboxes for reviewer sign-off.
 
 ## Design Principles
 
@@ -79,19 +82,22 @@ Include these sections unless the PR clearly does not need one:
 - Serif headings (`ui-serif, Georgia`), sans body (`system-ui`), mono for code and paths.
 - Rounded 12px cards, 1.5px borders, minimal decoration.
 - Dark code blocks (`--slate` background) with warm off-white text.
-- Added lines: visible olive background with green left border. Deleted lines: visible clay background with orange left border and strikethrough. Both should be clearly distinguishable from unchanged lines at a glance.
+- **Code diff colors follow Claude Code style:**
+  - Added lines: green background (`rgba(46,160,67,0.20)`), solid green left border (`#3fb950`). Text stays readable.
+  - Deleted lines: red background (`rgba(248,81,73,0.20)`), solid red left border (`#f85149`), strikethrough text.
+  - Unchanged context lines have no highlight — just the default dark background.
 - Responsive: single column below 900px.
 - No animations, no gradients, no decoration for decoration's sake.
 
 ## Code Diff Rendering
 
-For each file's key change, render syntax-highlighted code:
+For each file's key change, render syntax-highlighted code using Claude Code–style diff colors:
 
 ```html
 <div class="code"><pre>
 <span class="kw">const</span> x = <span class="fn">doThing</span>();
-<span class="del">  old line removed</span>
-<span class="add">  new line added</span>
+<span class="del">- old line removed</span>
+<span class="add">+ new line added</span>
 <span class="cm">// comment</span>
 <span class="str">'string literal'</span>
 </pre></div>
@@ -102,8 +108,27 @@ Classes:
 - `.fn` — function names
 - `.str` — string literals
 - `.cm` — comments
-- `.add` — added lines (olive background)
-- `.del` — deleted lines (clay background, strikethrough)
+- `.add` — added lines (green background, green left border — Claude Code green)
+- `.del` — deleted lines (red background, red left border, strikethrough — Claude Code red)
+
+## Flow Diagram
+
+When the PR changes touch functions in a call chain or data pipeline, include a flow diagram above the file tour. Build it with CSS flexbox boxes and arrow connectors. Each box:
+- Shows the function or module name.
+- Is wrapped in an `<a href="#file-N">` so clicking navigates to that file's section.
+- Uses the same card styling (rounded, bordered) as the rest of the page.
+
+```html
+<div class="flow">
+  <a href="#file-1" class="flow-box">functionX</a>
+  <span class="flow-arrow">→</span>
+  <a href="#file-2" class="flow-box">functionY</a>
+  <span class="flow-arrow">→</span>
+  <a href="#file-3" class="flow-box">functionZ</a>
+</div>
+```
+
+Omit this section if the PR is a single-file config change or has no meaningful call flow.
 
 ## Template
 
