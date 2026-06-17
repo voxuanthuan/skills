@@ -66,7 +66,7 @@ Include these sections unless the PR clearly does not need one:
 
 1. **Header** — PR number, title, branch → target, author, +/− line counts.
 2. **TL;DR** — Bullet list of what changed. Each bullet is one short sentence. Write so a high-school student can follow. No jargon without explaining it first. Max 5–7 bullets.
-3. **Flow diagram** (conditional) — Only include when changed files are **related**: one calls another, they share a data pipeline, or data flows between them. Skip entirely if files are independent changes (e.g., unrelated config + unrelated test). A horizontal block-box diagram where each box = a function/module name, boxes connect with arrows (→), and each box is clickable and scrolls to the matching file section.
+3. **Flow diagram** (conditional) — Only include when changed files are **related**: one calls another, they share a data pipeline, or data flows between them. Skip entirely if files are independent changes (e.g., unrelated config + unrelated test). A horizontal block-box diagram where each box = a function/module name, boxes connect with arrows (→). Clicking a box opens a **popup** showing that file's code change — the user stays on the flow view and can click other boxes to compare.
 4. **Before / After** — Side-by-side panels. Short bullet points only.
 5. **Risk map** — Colored chips (safe / worth a look / needs attention) that link to file sections.
 6. **File tour** — Collapsible cards per file, each with:
@@ -125,16 +125,30 @@ Classes:
 
 Build with CSS flexbox boxes and arrow connectors. Each box:
 - Shows the function or module name.
-- Is wrapped in an `<a href="#file-N">` so clicking navigates to that file's section.
+- Has a `data-popup="file-N"` attribute linking to the matching file's `<details id="file-N">` element.
+- **On click, opens a popup/modal** showing that file's code change. The user stays on the flow view and can click other boxes to compare changes. The clicked box gets an `.active` highlight.
 - Uses the same card styling (rounded, bordered) as the rest of the page.
+
+The popup is powered by a small inline `<script>` at the bottom of the page (see template). It clones the `.file-body` content from the matching `<details>` into a centered overlay. Close with ×, click outside, or Escape.
 
 ```html
 <div class="flow">
-  <a href="#file-1" class="flow-box">functionX</a>
+  <a data-popup="file-1" class="flow-box">functionX</a>
   <span class="flow-arrow">→</span>
-  <a href="#file-2" class="flow-box">functionY</a>
+  <a data-popup="file-2" class="flow-box">functionY</a>
   <span class="flow-arrow">→</span>
-  <a href="#file-3" class="flow-box">functionZ</a>
+  <a data-popup="file-3" class="flow-box">functionZ</a>
+</div>
+
+<!-- Popup container (one per page, populated by JS) -->
+<div class="flow-popup-overlay" id="flow-popup-overlay">
+  <div class="flow-popup">
+    <div class="flow-popup-head">
+      <span class="path" id="flow-popup-path"></span>
+      <button class="flow-popup-close" id="flow-popup-close">&times;</button>
+    </div>
+    <div class="flow-popup-body" id="flow-popup-body"></div>
+  </div>
 </div>
 ```
 

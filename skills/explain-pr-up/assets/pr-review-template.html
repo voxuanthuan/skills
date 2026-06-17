@@ -429,11 +429,17 @@
       padding: 10px 18px;
       text-decoration: none;
       white-space: nowrap;
+      cursor: pointer;
       transition: border-color 0.15s ease, background 0.15s ease;
     }
     .flow-box:hover {
       border-color: var(--clay);
       background: rgba(217,119,87,0.08);
+    }
+    .flow-box.active {
+      border-color: var(--clay);
+      background: rgba(217,119,87,0.12);
+      box-shadow: 0 0 0 2px rgba(217,119,87,0.25);
     }
     .flow-arrow {
       font-size: 18px;
@@ -450,6 +456,70 @@
       margin-bottom: 10px;
       width: 100%;
     }
+
+    /* ---------- flow popup ---------- */
+
+    .flow-popup-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(20,20,19,0.45);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 32px;
+    }
+    .flow-popup-overlay.open { display: flex; }
+    .flow-popup {
+      background: var(--white);
+      border: 1.5px solid var(--gray-300);
+      border-radius: 16px;
+      max-width: 820px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(20,20,19,0.25);
+    }
+    .flow-popup-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 20px;
+      border-bottom: 1.5px solid var(--gray-300);
+      background: var(--gray-150);
+      border-radius: 16px 16px 0 0;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    .flow-popup-head .path {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--slate);
+      flex: 1;
+    }
+    .flow-popup-close {
+      background: none;
+      border: 1.5px solid var(--gray-300);
+      border-radius: 6px;
+      width: 28px;
+      height: 28px;
+      font-size: 16px;
+      color: var(--gray-500);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.15s;
+    }
+    .flow-popup-close:hover { border-color: var(--clay); color: var(--clay); }
+    .flow-popup-body { padding: 18px 20px 22px; }
+    .flow-popup-body .why {
+      font-size: 14.5px;
+      margin-bottom: 14px;
+      max-width: 680px;
+    }
+    .flow-popup-body .why strong { color: var(--slate); }
 
     /* ---------- checklist ---------- */
 
@@ -531,20 +601,32 @@
 
         <!-- ==================== FLOW DIAGRAM ==================== -->
         <!-- Show only when PR touches 2+ functions in a call chain.
-             Each box links to the matching file section below.
+             Each box opens a popup showing the file's code change.
+             User stays on the flow view and can click other boxes.
              Remove this section for single-file or config-only changes. -->
 
         <section id="flow">
           <h2>Code flow</h2>
           <div class="flow">
             <div class="flow-label">Execution path</div>
-            <a href="#file-1" class="flow-box">{{FLOW_FUNC_1}}</a>
+            <a data-popup="file-1" class="flow-box">{{FLOW_FUNC_1}}</a>
             <span class="flow-arrow">&rarr;</span>
-            <a href="#file-2" class="flow-box">{{FLOW_FUNC_2}}</a>
+            <a data-popup="file-2" class="flow-box">{{FLOW_FUNC_2}}</a>
             <span class="flow-arrow">&rarr;</span>
-            <a href="#file-3" class="flow-box">{{FLOW_FUNC_3}}</a>
+            <a data-popup="file-3" class="flow-box">{{FLOW_FUNC_3}}</a>
           </div>
         </section>
+
+        <!-- Flow popup (populated by JS when a flow-box is clicked) -->
+        <div class="flow-popup-overlay" id="flow-popup-overlay">
+          <div class="flow-popup">
+            <div class="flow-popup-head">
+              <span class="path" id="flow-popup-path"></span>
+              <button class="flow-popup-close" id="flow-popup-close">&times;</button>
+            </div>
+            <div class="flow-popup-body" id="flow-popup-body"></div>
+          </div>
+        </div>
 
         <!-- ==================== BEFORE / AFTER ==================== -->
 
@@ -718,5 +800,48 @@
 
     </div>
   </div>
+  <!-- Flow popup script -->
+  <script>
+  (function() {
+    var overlay = document.getElementById('flow-popup-overlay');
+    var popupPath = document.getElementById('flow-popup-path');
+    var popupBody = document.getElementById('flow-popup-body');
+    var closeBtn = document.getElementById('flow-popup-close');
+
+    document.querySelectorAll('.flow-box[data-popup]').forEach(function(box) {
+      box.addEventListener('click', function(e) {
+        e.preventDefault();
+        var fileId = box.getAttribute('data-popup');
+        var fileEl = document.getElementById(fileId);
+        if (!fileEl) return;
+
+        // Highlight active box
+        document.querySelectorAll('.flow-box').forEach(function(b) { b.classList.remove('active'); });
+        box.classList.add('active');
+
+        // Copy file content into popup
+        var path = fileEl.querySelector('.path');
+        popupPath.textContent = path ? path.textContent : fileId;
+        var body = fileEl.querySelector('.file-body');
+        popupBody.innerHTML = body ? body.innerHTML : '';
+
+        overlay.classList.add('open');
+      });
+    });
+
+    function closePopup() {
+      overlay.classList.remove('open');
+      document.querySelectorAll('.flow-box').forEach(function(b) { b.classList.remove('active'); });
+    }
+
+    closeBtn.addEventListener('click', closePopup);
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) closePopup();
+    });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closePopup();
+    });
+  })();
+  </script>
 </body>
 </html>
