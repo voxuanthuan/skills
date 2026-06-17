@@ -181,7 +181,7 @@
       gap: 8px;
       font-size: 13.5px;
     }
-    .ba li::before { content: '\b7'; color: var(--gray-500); margin-right: 8px; }
+    .ba li::before { content: '\00b7'; color: var(--gray-500); margin-right: 8px; }
     .ba .after li::before { color: var(--olive); }
 
     /* ---------- risk map ---------- */
@@ -402,6 +402,8 @@
       color: var(--slate);
     }
     .tldr li::before { content: '\2022'; color: var(--clay); margin-right: 10px; font-weight: bold; }
+    /* NOTE: li::before renders the bullet automatically.
+       Do NOT put bullet characters in the <li> text. */
 
     /* ---------- flow diagram ---------- */
 
@@ -509,7 +511,9 @@
         <!-- ==================== TL;DR ==================== -->
         <!-- Bullet list. Each bullet = one short sentence.
              Write so a high-school student can understand.
-             Max 5-7 bullets. No jargon without a brief definition. -->
+             Max 5-7 bullets. No jargon without a brief definition.
+             IMPORTANT: Do NOT include bullet characters (\2022, •, etc.) in the <li> text.
+             The CSS li::before rule renders bullets automatically. -->
 
         <section id="tldr">
           <h2>TL;DR</h2>
@@ -548,7 +552,9 @@
           <h2>Before &amp; After</h2>
           <!-- Keep each bullet to one short line.
                Describe what the user sees, not what the code does.
-               Example: "Names disappear from the form" not "adapter overwrites nested object" -->
+               Example: "Names disappear from the form" not "adapter overwrites nested object"
+               IMPORTANT: Do NOT include bullet characters (\2022, •, -, etc.) in the <li> text.
+               The CSS li::before rule renders bullets automatically. -->
           <p class="lede">{{BEFORE_AFTER_CONTEXT}}</p>
 
           <div class="ba">
@@ -607,6 +613,10 @@
               <div class="file-body">
                 <!-- One sentence: why did this file change? Keep it simple. -->
                 <p class="why"><strong>{{FILE_1_WHY_BOLD}}</strong> {{FILE_1_WHY_TEXT}}</p>
+                <!-- Show the FULL function or method containing the change.
+                     Unchanged context lines have no .add/.del class.
+                     Only mark changed lines with .add or .del spans.
+                     This gives reviewers enough context to understand the change. -->
                 <div class="code"><pre>{{FILE_1_CODE}}</pre></div>
               </div>
             </details>

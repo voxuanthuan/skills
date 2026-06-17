@@ -41,13 +41,13 @@ Write the way `explain-issue-html` writes: short, plain, concrete.
    - **needs attention** — new core logic, tricky edge case, error handling, or security-sensitive.
 
 3. Write the PR story in plain language.
-   - **TL;DR**: A bullet list (5–7 items). Each bullet is one short sentence that a high-school student can understand. No jargon without a one-line definition first.
+   - **TL;DR**: A bullet list (5–7 items). Each bullet is one short sentence that a high-school student can understand. No jargon without a one-line definition first. **Do NOT include bullet characters** (`\2022`, `•`, `-`, etc.) in the `<li>` text — the CSS `li::before` rule renders bullets automatically.
    - **Flow diagram**: Only if the changed files are **related** — one calls another, they share a data pipeline, or they pass data between them. Do not draw a flow for files that are independent/unrelated changes. For complex flows, use inline SVG (see below).
    - **Short summary**: 2–3 sentences. What changed? Why? Written so someone who has never seen this code can follow.
    - **Before / After**: what happened before this PR vs. what happens now. Use bullet points. Keep each bullet to one line.
    - **File-by-file tour**: most important file first. For each file:
      - One sentence: *why* this file changed (not just *what*).
-     - A code snippet showing the key change with Claude Code–style colors (green = added, red = deleted).
+     - A code block showing the change **with surrounding context** — include the full function or method, not just the changed lines. If the class is very large, show the relevant method plus a few lines above and below. Unchanged context lines have no special class (they appear in default off-white). Only changed lines get `.add` or `.del` spans. This gives the reviewer enough context to understand the change without switching to an IDE.
    - **Review focus**: 2–3 numbered items. Point to the exact lines or decisions that matter most. Say why they matter.
 
 4. Build the HTML artifact.
@@ -72,7 +72,7 @@ Include these sections unless the PR clearly does not need one:
 6. **File tour** — Collapsible cards per file, each with:
    - File path, badge (new/mod/del), +/− stats.
    - One sentence explaining *why* this file changed.
-   - A code block showing the diff with Claude Code–style coloring.
+   - A code block showing the change **in context**: include the full function or method. Unchanged lines have no `.add`/`.del` class. Only mark changed lines with `.add` (green) or `.del` (red). If the entire file is new and short, show it all.
 7. **Review focus** — Numbered cards with the 2–3 most important review points.
 8. **Checklist** (optional) — Interactive checkboxes for reviewer sign-off.
 
@@ -91,17 +91,21 @@ Include these sections unless the PR clearly does not need one:
 
 ## Code Diff Rendering
 
-For each file's key change, render syntax-highlighted code using Claude Code–style diff colors:
+For each file's key change, show the **full function or method** containing the change. Unchanged context lines have no special class — they appear in the default off-white text. Only changed lines get `.add` or `.del` spans:
 
 ```html
 <div class="code"><pre>
-<span class="kw">const</span> x = <span class="fn">doThing</span>();
-<span class="del">- old line removed</span>
-<span class="add">+ new line added</span>
-<span class="cm">// comment</span>
-<span class="str">'string literal'</span>
+<span class="kw">function</span> <span class="fn">processOrder</span>(order) {
+  <span class="kw">const</span> total = order.items.reduce((s, i) => s + i.price, 0);
+<span class="del">- <span class="kw">if</span> (total > 100) <span class="kw">return</span> applyDiscount(total);</span>
+<span class="add">+ <span class="kw">const</span> discount = total > 100 ? <span class="fn">getDiscount</span>(order.tier) : 0;</span>
+<span class="add">+ <span class="kw">return</span> { total: total - discount, discount };</span>
+  <span class="fn">logOrder</span>(order.id, total);
+}
 </pre></div>
 ```
+
+Notice: the function signature, unchanged lines, and closing brace provide context. Only the actual changes are highlighted.
 
 Classes:
 - `.kw` — keywords (const, await, if, return)
