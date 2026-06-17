@@ -322,19 +322,19 @@
     .code .cm  { color: var(--gray-500); }
     .code .fn  { color: #C9B98A; }
     .code .add {
-      background: rgba(120,140,93,.38);
+      background: rgba(46,160,67,0.20);
       display: inline-block;
       width: 100%;
-      border-left: 3px solid #9AB66E;
+      border-left: 3px solid #3fb950;
       padding-left: 6px;
     }
     .code .del {
-      background: rgba(217,119,87,.32);
+      background: rgba(248,81,73,0.20);
       display: inline-block;
       width: 100%;
       text-decoration: line-through;
-      text-decoration-color: rgba(217,119,87,.8);
-      border-left: 3px solid var(--clay);
+      text-decoration-color: rgba(248,81,73,.7);
+      border-left: 3px solid #f85149;
       padding-left: 6px;
     }
 
@@ -373,6 +373,80 @@
       background: var(--gray-150);
       padding: 1px 5px;
       border-radius: 4px;
+    }
+
+    /* ---------- TL;DR ---------- */
+
+    .tldr {
+      background: var(--white);
+      border: 1.5px solid var(--gray-300);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 48px;
+      max-width: 760px;
+    }
+    .tldr .k {
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--gray-500);
+      margin-bottom: 10px;
+    }
+    .tldr ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 14.5px;
+      color: var(--slate);
+    }
+    .tldr li::before { content: '\2022'; color: var(--clay); margin-right: 10px; font-weight: bold; }
+
+    /* ---------- flow diagram ---------- */
+
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex-wrap: wrap;
+      margin-bottom: 48px;
+      padding: 24px 20px;
+      background: var(--white);
+      border: 1.5px solid var(--gray-300);
+      border-radius: 12px;
+      overflow-x: auto;
+    }
+    .flow-box {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--slate);
+      background: var(--gray-150);
+      border: 1.5px solid var(--gray-300);
+      border-radius: 8px;
+      padding: 10px 18px;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+    .flow-box:hover {
+      border-color: var(--clay);
+      background: rgba(217,119,87,0.08);
+    }
+    .flow-arrow {
+      font-size: 18px;
+      color: var(--gray-500);
+      padding: 0 12px;
+      user-select: none;
+    }
+    .flow-label {
+      font-size: 11px;
+      color: var(--gray-500);
+      font-family: var(--mono);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 10px;
+      width: 100%;
     }
 
     /* ---------- checklist ---------- */
@@ -431,6 +505,42 @@
           <div class="k">Summary</div>
           <p>{{SUMMARY_TEXT}}</p>
         </div>
+
+        <!-- ==================== TL;DR ==================== -->
+        <!-- Bullet list. Each bullet = one short sentence.
+             Write so a high-school student can understand.
+             Max 5-7 bullets. No jargon without a brief definition. -->
+
+        <section id="tldr">
+          <h2>TL;DR</h2>
+          <div class="tldr">
+            <div class="k">What changed</div>
+            <ul>
+              <li>{{TLDR_1}}</li>
+              <li>{{TLDR_2}}</li>
+              <li>{{TLDR_3}}</li>
+              <li>{{TLDR_4}}</li>
+              <li>{{TLDR_5}}</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- ==================== FLOW DIAGRAM ==================== -->
+        <!-- Show only when PR touches 2+ functions in a call chain.
+             Each box links to the matching file section below.
+             Remove this section for single-file or config-only changes. -->
+
+        <section id="flow">
+          <h2>Code flow</h2>
+          <div class="flow">
+            <div class="flow-label">Execution path</div>
+            <a href="#file-1" class="flow-box">{{FLOW_FUNC_1}}</a>
+            <span class="flow-arrow">&rarr;</span>
+            <a href="#file-2" class="flow-box">{{FLOW_FUNC_2}}</a>
+            <span class="flow-arrow">&rarr;</span>
+            <a href="#file-3" class="flow-box">{{FLOW_FUNC_3}}</a>
+          </div>
+        </section>
 
         <!-- ==================== BEFORE / AFTER ==================== -->
 
@@ -584,6 +694,8 @@
       <aside class="toc">
         <div class="t-head">On this page</div>
         <a href="#summary">Summary</a>
+        <a href="#tldr">TL;DR</a>
+        <a href="#flow">Code flow</a>
         <a href="#before-after">Before &amp; After</a>
         <a href="#risk-map">Risk map</a>
         <a href="#files">File-by-file</a>
