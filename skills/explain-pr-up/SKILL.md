@@ -185,7 +185,7 @@ The outside-click handler must check the popup panel, not only the overlay eleme
 
 ```js
 document.addEventListener('click', function(e) {
-  var clickedFlowBox = e.target.closest && e.target.closest('[data-popup]');
+  var clickedFlowBox = closestPopupTrigger(e.target);
   if (overlay.classList.contains('open') && !popup.contains(e.target) && !clickedFlowBox) {
     closePopup();
   }
