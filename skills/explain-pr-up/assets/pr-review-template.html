@@ -24,6 +24,7 @@
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
 
     body {
       font-family: var(--sans);
@@ -81,7 +82,13 @@
     }
     @media (max-width: 900px) {
       .layout { grid-template-columns: 1fr; }
-      .toc { display: none; }
+      .toc {
+        position: static;
+        border-left: 0;
+        border-top: 1.5px solid var(--gray-300);
+        padding-left: 0;
+        padding-top: 18px;
+      }
     }
 
     section { margin-bottom: 56px; scroll-margin-top: 24px; }
@@ -124,6 +131,64 @@
     }
     .toc a:hover { color: var(--clay); }
     .toc .sub { padding-left: 12px; color: var(--gray-500); font-size: 12.5px; }
+    .toc-checklist {
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1.5px solid var(--gray-300);
+    }
+    .toc-checklist label {
+      display: grid;
+      grid-template-columns: 14px 1fr;
+      gap: 8px;
+      align-items: start;
+      padding: 6px 0;
+      font-size: 12.5px;
+      line-height: 1.35;
+      color: var(--gray-700);
+      cursor: pointer;
+    }
+    .toc-checklist input {
+      margin-top: 2px;
+      width: 13px;
+      height: 13px;
+    }
+    .toc-checklist label:has(input:checked) {
+      color: var(--olive);
+      text-decoration: line-through;
+      text-decoration-thickness: 1px;
+    }
+    body:has(#{{CHECK_1_ID}}:checked) [data-check~="{{CHECK_1_KEY}}"]:not(:target),
+    body:has(#{{CHECK_2_ID}}:checked) [data-check~="{{CHECK_2_KEY}}"]:not(:target),
+    body:has(#{{CHECK_3_ID}}:checked) [data-check~="{{CHECK_3_KEY}}"]:not(:target) {
+      border-color: var(--olive) !important;
+      box-shadow: inset 0 0 0 1px rgba(120,140,93,0.35);
+      position: relative;
+    }
+    body:has(#{{CHECK_1_ID}}:checked) [data-check~="{{CHECK_1_KEY}}"]::after,
+    body:has(#{{CHECK_2_ID}}:checked) [data-check~="{{CHECK_2_KEY}}"]::after,
+    body:has(#{{CHECK_3_ID}}:checked) [data-check~="{{CHECK_3_KEY}}"]::after {
+      background: var(--olive);
+      border: 1px solid rgba(20,20,19,0.12);
+      border-radius: 999px;
+      color: var(--white);
+      content: 'checked';
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0;
+      line-height: 1;
+      padding: 4px 7px;
+      position: absolute;
+      right: -8px;
+      top: -10px;
+      z-index: 3;
+    }
+    body:has(#{{CHECK_1_ID}}:checked) .file[data-check~="{{CHECK_1_KEY}}"]::after,
+    body:has(#{{CHECK_2_ID}}:checked) .file[data-check~="{{CHECK_2_KEY}}"]::after,
+    body:has(#{{CHECK_3_ID}}:checked) .file[data-check~="{{CHECK_3_KEY}}"]::after {
+      right: 10px;
+      top: 10px;
+    }
 
     /* ---------- summary ---------- */
 
@@ -267,11 +332,41 @@
     }
     .file[open] summary .chev { transform: rotate(45deg); }
 
+    .file summary .path-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      min-width: 0;
+    }
     .file summary .path {
       font-family: var(--mono);
       font-size: 13px;
       color: var(--slate);
-      flex: 1;
+      flex: 0 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .file summary .copy-path {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      color: var(--gray-500);
+      background: var(--white);
+      border: 1.5px solid var(--gray-300);
+      border-radius: 6px;
+      padding: 2px 8px;
+      cursor: pointer;
+      flex-shrink: 0;
+      line-height: 1.4;
+      transition: background .12s ease, color .12s ease, border-color .12s ease;
+    }
+    .file summary .copy-path:hover { background: var(--oat); color: var(--slate); }
+    .file summary .copy-path.copied {
+      background: #E4E9DC;
+      color: #4B5C39;
+      border-color: #B9C7A6;
     }
     .file summary .badge {
       font-family: var(--mono);
@@ -420,6 +515,7 @@
       overflow-x: auto;
     }
     .flow-box {
+      appearance: none;
       font-family: var(--mono);
       font-size: 13px;
       color: var(--slate);
@@ -470,6 +566,44 @@
       padding: 32px;
     }
     .flow-popup-overlay.open { display: flex; }
+    .target-backdrop,
+    .target-close { display: none; }
+    body:has(.file:target) .target-backdrop {
+      display: block;
+      position: fixed;
+      inset: 0;
+      z-index: 44;
+      background: rgba(20,20,19,0.62);
+    }
+    .file:target {
+      position: fixed;
+      inset: 32px;
+      z-index: 45;
+      overflow: auto;
+      max-width: 980px;
+      margin: 0 auto;
+      box-shadow: 0 20px 60px rgba(20,20,19,0.25);
+    }
+    .file:target .target-close {
+      display: inline-flex;
+      width: 32px;
+      height: 32px;
+      align-items: center;
+      justify-content: center;
+      margin-left: auto;
+      border: 1.5px solid var(--gray-300);
+      border-radius: 8px;
+      background: var(--white);
+      color: var(--slate);
+      text-decoration: none;
+      font-size: 22px;
+      line-height: 1;
+    }
+    .file:target summary {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
     .flow-popup {
       background: var(--white);
       border: 1.5px solid var(--gray-300);
@@ -521,35 +655,11 @@
     }
     .flow-popup-body .why strong { color: var(--slate); }
 
-    /* ---------- checklist ---------- */
-
-    .checklist { list-style: none; padding: 0; max-width: 760px; }
-
-    .checklist li {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      padding: 8px 0;
-    }
-    .checklist input[type="checkbox"] {
-      width: 17px;
-      height: 17px;
-      margin-top: 2px;
-      accent-color: var(--olive);
-      cursor: pointer;
-    }
-    .checklist label { cursor: pointer; flex: 1; font-size: 14px; }
-    .checklist code {
-      font-family: var(--mono);
-      font-size: 12.5px;
-      background: var(--gray-150);
-      padding: 1px 5px;
-      border-radius: 4px;
-    }
   </style>
 </head>
 <body>
   <div class="page">
+    <a class="target-backdrop" href="#flow" aria-label="Close code preview"></a>
 
     <!-- ==================== HEADER ==================== -->
 
@@ -609,20 +719,20 @@
           <h2>Code flow</h2>
           <div class="flow">
             <div class="flow-label">Execution path</div>
-            <a data-popup="file-1" class="flow-box">{{FLOW_FUNC_1}}</a>
+            <a href="#file-1" data-popup="file-1" class="flow-box" data-check="{{FILE_1_CHECK_KEYS}}">{{FLOW_FUNC_1}}</a>
             <span class="flow-arrow">&rarr;</span>
-            <a data-popup="file-2" class="flow-box">{{FLOW_FUNC_2}}</a>
+            <a href="#file-2" data-popup="file-2" class="flow-box" data-check="{{FILE_2_CHECK_KEYS}}">{{FLOW_FUNC_2}}</a>
             <span class="flow-arrow">&rarr;</span>
-            <a data-popup="file-3" class="flow-box">{{FLOW_FUNC_3}}</a>
+            <a href="#file-3" data-popup="file-3" class="flow-box" data-check="{{FILE_3_CHECK_KEYS}}">{{FLOW_FUNC_3}}</a>
           </div>
         </section>
 
         <!-- Flow popup (populated by JS when a flow-box is clicked) -->
-        <div class="flow-popup-overlay" id="flow-popup-overlay">
+        <div class="flow-popup-overlay" id="flow-popup-overlay" aria-hidden="true">
           <div class="flow-popup">
             <div class="flow-popup-head">
               <span class="path" id="flow-popup-path"></span>
-              <button class="flow-popup-close" id="flow-popup-close">&times;</button>
+              <button class="flow-popup-close" id="flow-popup-close" type="button" aria-label="Close popup">&times;</button>
             </div>
             <div class="flow-popup-body" id="flow-popup-body"></div>
           </div>
@@ -665,9 +775,9 @@
           <h2>Risk map</h2>
           <div class="risk-map">
             <!-- Repeat chip for each file. Use class: safe | medium | attention -->
-            <a class="chip attention" href="#file-1"><span class="dot"></span>{{FILE_1_NAME}}</a>
-            <a class="chip medium" href="#file-2"><span class="dot"></span>{{FILE_2_NAME}}</a>
-            <a class="chip safe" href="#file-3"><span class="dot"></span>{{FILE_3_NAME}}</a>
+            <a class="chip attention" href="#file-1" data-check="{{FILE_1_CHECK_KEYS}}"><span class="dot"></span>{{FILE_1_NAME}}</a>
+            <a class="chip medium" href="#file-2" data-check="{{FILE_2_CHECK_KEYS}}"><span class="dot"></span>{{FILE_2_NAME}}</a>
+            <a class="chip safe" href="#file-3" data-check="{{FILE_3_CHECK_KEYS}}"><span class="dot"></span>{{FILE_3_NAME}}</a>
           </div>
           <div class="legend">
             <span><span class="dot" style="background:var(--olive)"></span> safe</span>
@@ -685,12 +795,16 @@
           <div class="file-tour">
 
             <!-- FILE 1 (open by default for the most important file) -->
-            <details class="file" id="file-1" open>
+            <details class="file" id="file-1" open data-check="{{FILE_1_CHECK_KEYS}}">
               <summary>
                 <span class="chev"></span>
-                <span class="path">{{FILE_1_PATH}}</span>
+                <span class="path-wrap">
+                  <span class="path">{{FILE_1_PATH}}</span>
+                  <button type="button" class="copy-path" data-path="{{FILE_1_PATH}}" aria-label="Copy file path">Copy path</button>
+                </span>
                 <span class="badge mod">{{FILE_1_BADGE}}</span>
                 <span class="stat"><span class="add">+{{FILE_1_ADD}}</span> <span class="del">&minus;{{FILE_1_DEL}}</span></span>
+                <a class="target-close" href="#flow" aria-label="Close code preview">&times;</a>
               </summary>
               <div class="file-body">
                 <!-- One sentence: why did this file change? Keep it simple. -->
@@ -704,12 +818,16 @@
             </details>
 
             <!-- FILE 2 -->
-            <details class="file" id="file-2">
+            <details class="file" id="file-2" open data-check="{{FILE_2_CHECK_KEYS}}">
               <summary>
                 <span class="chev"></span>
-                <span class="path">{{FILE_2_PATH}}</span>
+                <span class="path-wrap">
+                  <span class="path">{{FILE_2_PATH}}</span>
+                  <button type="button" class="copy-path" data-path="{{FILE_2_PATH}}" aria-label="Copy file path">Copy path</button>
+                </span>
                 <span class="badge mod">{{FILE_2_BADGE}}</span>
                 <span class="stat"><span class="add">+{{FILE_2_ADD}}</span> <span class="del">&minus;{{FILE_2_DEL}}</span></span>
+                <a class="target-close" href="#flow" aria-label="Close code preview">&times;</a>
               </summary>
               <div class="file-body">
                 <p class="why"><strong>{{FILE_2_WHY_BOLD}}</strong> {{FILE_2_WHY_TEXT}}</p>
@@ -718,12 +836,16 @@
             </details>
 
             <!-- FILE 3 -->
-            <details class="file" id="file-3">
+            <details class="file" id="file-3" open data-check="{{FILE_3_CHECK_KEYS}}">
               <summary>
                 <span class="chev"></span>
-                <span class="path">{{FILE_3_PATH}}</span>
+                <span class="path-wrap">
+                  <span class="path">{{FILE_3_PATH}}</span>
+                  <button type="button" class="copy-path" data-path="{{FILE_3_PATH}}" aria-label="Copy file path">Copy path</button>
+                </span>
                 <span class="badge new">{{FILE_3_BADGE}}</span>
                 <span class="stat"><span class="add">+{{FILE_3_ADD}}</span></span>
+                <a class="target-close" href="#flow" aria-label="Close code preview">&times;</a>
               </summary>
               <div class="file-body">
                 <p class="why"><strong>{{FILE_3_WHY_BOLD}}</strong> {{FILE_3_WHY_TEXT}}</p>
@@ -768,17 +890,6 @@
           </div>
         </section>
 
-        <!-- ==================== CHECKLIST ==================== -->
-
-        <section id="checklist">
-          <h2>Review checklist</h2>
-          <ul class="checklist">
-            <li><input type="checkbox" id="c1"><label for="c1">{{CHECK_1}}</label></li>
-            <li><input type="checkbox" id="c2"><label for="c2">{{CHECK_2}}</label></li>
-            <li><input type="checkbox" id="c3"><label for="c3">{{CHECK_3}}</label></li>
-          </ul>
-        </section>
-
       </main>
 
       <!-- ==================== TABLE OF CONTENTS ==================== -->
@@ -795,7 +906,12 @@
         <a class="sub" href="#file-2">{{FILE_2_NAME}}</a>
         <a class="sub" href="#file-3">{{FILE_3_NAME}}</a>
         <a href="#focus">Review focus</a>
-        <a href="#checklist">Checklist</a>
+        <div class="toc-checklist" id="checklist">
+          <div class="t-head">Review checklist</div>
+          <label><input id="{{CHECK_1_ID}}" type="checkbox">{{CHECK_1}}</label>
+          <label><input id="{{CHECK_2_ID}}" type="checkbox">{{CHECK_2}}</label>
+          <label><input id="{{CHECK_3_ID}}" type="checkbox">{{CHECK_3}}</label>
+        </div>
       </aside>
 
     </div>
@@ -807,39 +923,164 @@
     var popupPath = document.getElementById('flow-popup-path');
     var popupBody = document.getElementById('flow-popup-body');
     var closeBtn = document.getElementById('flow-popup-close');
+    var popup = overlay ? overlay.querySelector('.flow-popup') : null;
+    var boxes = Array.prototype.slice.call(document.querySelectorAll('.flow-box[data-popup]'));
+    var fileCards = Array.prototype.slice.call(document.querySelectorAll('.file-tour details.file'));
+    if (!overlay || !popupPath || !popupBody || !closeBtn || !popup) return;
 
-    document.querySelectorAll('.flow-box[data-popup]').forEach(function(box) {
-      box.addEventListener('click', function(e) {
-        e.preventDefault();
-        var fileId = box.getAttribute('data-popup');
-        var fileEl = document.getElementById(fileId);
-        if (!fileEl) return;
+    function closestPopupTrigger(target) {
+      while (target && target !== document) {
+        if (target.getAttribute && target.getAttribute('data-popup')) return target;
+        target = target.parentNode;
+      }
+      return null;
+    }
 
-        // Highlight active box
-        document.querySelectorAll('.flow-box').forEach(function(b) { b.classList.remove('active'); });
-        box.classList.add('active');
-
-        // Copy file content into popup
-        var path = fileEl.querySelector('.path');
-        popupPath.textContent = path ? path.textContent : fileId;
-        var body = fileEl.querySelector('.file-body');
-        popupBody.innerHTML = body ? body.innerHTML : '';
-
-        overlay.classList.add('open');
+    function clearActive() {
+      boxes.forEach(function(box) {
+        box.classList.remove('active');
       });
-    });
+    }
+
+    function clearTargetHash() {
+      if (!location.hash) return;
+      if (document.querySelector(location.hash + '.file')) {
+        history.replaceState(null, '', location.pathname + location.search);
+      }
+    }
 
     function closePopup() {
       overlay.classList.remove('open');
-      document.querySelectorAll('.flow-box').forEach(function(b) { b.classList.remove('active'); });
+      overlay.setAttribute('aria-hidden', 'true');
+      popupBody.innerHTML = '';
+      clearActive();
+      clearTargetHash();
     }
 
-    closeBtn.addEventListener('click', closePopup);
+    function openPopup(box) {
+      var fileId = box.getAttribute('data-popup');
+      var fileEl = document.getElementById(fileId);
+      var path;
+      var body;
+      var clone;
+      if (!fileEl) return;
+
+      fileEl.setAttribute('open', '');
+      path = fileEl.querySelector('.path');
+      body = fileEl.querySelector('.file-body');
+      if (!body) return;
+
+      clearActive();
+      box.classList.add('active');
+      popupPath.textContent = path ? path.textContent : fileId;
+      popupBody.innerHTML = '';
+      clone = body.cloneNode(true);
+      Array.prototype.slice.call(clone.querySelectorAll('details')).forEach(function(detail) {
+        detail.setAttribute('open', '');
+      });
+      Array.prototype.slice.call(clone.querySelectorAll('.target-close')).forEach(function(targetClose) {
+        if (targetClose.parentNode) targetClose.parentNode.removeChild(targetClose);
+      });
+      popupBody.appendChild(clone);
+      overlay.classList.add('open');
+      overlay.setAttribute('aria-hidden', 'false');
+      closeBtn.focus();
+    }
+
+    fileCards.forEach(function(file, index) {
+      if (index > 0) file.removeAttribute('open');
+      file.addEventListener('toggle', function() {
+        if (!file.open) return;
+        fileCards.forEach(function(otherFile) {
+          if (otherFile !== file) otherFile.removeAttribute('open');
+        });
+      });
+    });
+
+    boxes.forEach(function(box) {
+      box.addEventListener('click', function(e) {
+        e.preventDefault();
+        openPopup(box);
+      });
+    });
+
+    closeBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      closePopup();
+    });
     overlay.addEventListener('click', function(e) {
       if (e.target === overlay) closePopup();
     });
+    document.addEventListener('click', function(e) {
+      var clickedFlowBox = closestPopupTrigger(e.target);
+      if (overlay.classList.contains('open') && !popup.contains(e.target) && !clickedFlowBox) {
+        closePopup();
+        return;
+      }
+
+      var targetFile = location.hash ? document.querySelector(location.hash + '.file') : null;
+      if (targetFile && !targetFile.contains(e.target) && !clickedFlowBox) {
+        history.replaceState(null, '', location.pathname + location.search);
+      }
+    });
     document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') closePopup();
+      if (e.key === 'Escape' || e.keyCode === 27) closePopup();
+    });
+  })();
+  </script>
+  <!-- Copy file path script -->
+  <script>
+  (function() {
+    var buttons = Array.prototype.slice.call(document.querySelectorAll('.copy-path'));
+    if (!buttons.length) return;
+
+    function fallbackCopy(text) {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'absolute';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch (err) {}
+      document.body.removeChild(ta);
+    }
+
+    function flash(btn) {
+      var original = btn.getAttribute('data-label');
+      if (original === null) {
+        original = btn.textContent;
+        btn.setAttribute('data-label', original);
+      }
+      btn.classList.add('copied');
+      btn.textContent = 'Copied';
+      setTimeout(function() {
+        btn.classList.remove('copied');
+        btn.textContent = original;
+      }, 1400);
+    }
+
+    function copyPath(btn) {
+      var text = btn.getAttribute('data-path') || '';
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function() {
+          flash(btn);
+        }, function() {
+          fallbackCopy(text);
+          flash(btn);
+        });
+      } else {
+        fallbackCopy(text);
+        flash(btn);
+      }
+    }
+
+    buttons.forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        copyPath(btn);
+      });
     });
   })();
   </script>

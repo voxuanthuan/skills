@@ -3,6 +3,7 @@ name: mt:commit-push-pr
 description: "(Minh Tran) Commit, push, and open a PR in one shot. Use when the user runs /mt:commit-push-pr [base-branch] or asks to commit and create a PR."
 argument-hint: "[base-branch]"
 allowed-tools: [Bash]
+model: haiku
 ---
 
 # mt:commit-push-pr

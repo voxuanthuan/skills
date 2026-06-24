@@ -41,7 +41,7 @@ Write the way `explain-issue-html` writes: short, plain, concrete.
    - **needs attention** — new core logic, tricky edge case, error handling, or security-sensitive.
 
 3. Write the PR story in plain language.
-   - **TL;DR**: A bullet list (5–7 items). Each bullet is one short sentence that a high-school student can understand. No jargon without a one-line definition first. **Do NOT include bullet characters** (`\2022`, `•`, `-`, etc.) in the `<li>` text — the CSS `li::before` rule renders bullets automatically.
+   - **TL;DR**: A bullet list (5–7 items). Each bullet is one short sentence that a high-school student can understand. No jargon without a one-line definition first. **Do NOT include bullet characters** (`\2022`, `•`, `-`, etc.) in the `<li>` text — the CSS `li::before` rule renders bullets automatically. In the CSS, use a real CSS escape like `content: '\2022';` or a literal symbol like `content: '•';`. Never write `content: "\\2022";` because browsers render that as visible text.
    - **Flow diagram**: Only if the changed files are **related** — one calls another, they share a data pipeline, or they pass data between them. Do not draw a flow for files that are independent/unrelated changes. For complex flows, use inline SVG (see below).
    - **Short summary**: 2–3 sentences. What changed? Why? Written so someone who has never seen this code can follow.
    - **Before / After**: what happened before this PR vs. what happens now. Use bullet points. Keep each bullet to one line.
@@ -59,6 +59,8 @@ Write the way `explain-issue-html` writes: short, plain, concrete.
    - Read every sentence. If it has more than one comma, split it.
    - If a bullet point wraps to a third line, it is too long. Shorten it.
    - Replace any fancy word with a simpler one.
+   - Search the final HTML for bad escaped bullet CSS: `content: "\\2022"` and `content: "\\00b7"` must not appear.
+   - If you use pseudo-element bullets, confirm the CSS uses `content: '\2022';`, `content: '\00b7';`, or a literal symbol.
 
 ## Sections
 
@@ -66,15 +68,17 @@ Include these sections unless the PR clearly does not need one:
 
 1. **Header** — PR number, title, branch → target, author, +/− line counts.
 2. **TL;DR** — Bullet list of what changed. Each bullet is one short sentence. Write so a high-school student can follow. No jargon without explaining it first. Max 5–7 bullets.
-3. **Flow diagram** (conditional) — Only include when changed files are **related**: one calls another, they share a data pipeline, or data flows between them. Skip entirely if files are independent changes (e.g., unrelated config + unrelated test). A horizontal block-box diagram where each box = a function/module name, boxes connect with arrows (→). Clicking a box opens a **popup** showing that file's code change — the user stays on the flow view and can click other boxes to compare.
+3. **Flow diagram** (conditional) — Only include when changed files are **related**: one calls another, they share a data pipeline, or data flows between them. Skip entirely if files are independent changes (e.g., unrelated config + unrelated test). A horizontal block-box diagram where each box = a function/module name, boxes connect with arrows (→). Clicking a box opens a **popup** showing that file's code change — the user stays on the flow view and can click other boxes to compare. Use `<a href="#file-N" data-popup="file-N" class="flow-box">` plus a script that calls `event.preventDefault()` and opens the popup. The `href` gives a CSS-only fallback when scripts are blocked.
 4. **Before / After** — Side-by-side panels. Short bullet points only.
 5. **Risk map** — Colored chips (safe / worth a look / needs attention) that link to file sections.
+   - Risk chips must navigate smoothly to their file cards. Add `html { scroll-behavior: smooth; }` in the artifact CSS.
 6. **File tour** — Collapsible cards per file, each with:
-   - File path, badge (new/mod/del), +/− stats.
+   - File path, badge (new/mod/del), +/− stats. The relative path sits at the top of the card next to a small **Copy path** button. Clicking the button copies that file's relative path to the clipboard and must not toggle the card open/closed (the handler calls `preventDefault()` and `stopPropagation()`). It shows a brief "Copied" confirmation, and falls back to a hidden-textarea + `document.execCommand('copy')` when `navigator.clipboard` is unavailable (e.g. sandboxed previews). Set the button's `data-path` to the same value as the displayed path.
    - One sentence explaining *why* this file changed.
    - A code block showing the change **in context**: include the full function or method. Unchanged lines have no `.add`/`.del` class. Only mark changed lines with `.add` (green) or `.del` (red). If the entire file is new and short, show it all.
+   - Use accordion behavior: when one file card opens, close all other file cards. Render file cards open in static HTML if needed for no-JS fallback, then let the script collapse all except the first card on load.
 7. **Review focus** — Numbered cards with the 2–3 most important review points.
-8. **Checklist** (optional) — Interactive checkboxes for reviewer sign-off.
+8. **Checklist** (optional) — Put interactive checkboxes inside the sticky right sidebar below navigation, not as a large main-page section. The checklist should stay visible while reviewers inspect Flow, Risk Map, File Tour, and code changes. Each checklist input must have a stable id and a short key. Add matching `data-check` keys to related flow boxes, risk chips, file cards, and review focus cards. Checking a box must visibly mark every related element as done. Prefer CSS `body:has(#check-id:checked) [data-check~="key"]` so this still works in sandboxed previews where JavaScript is blocked. Related elements must also show a small `checked` badge using `::after`, not only a border change.
 
 ## Design Principles
 
@@ -87,7 +91,22 @@ Include these sections unless the PR clearly does not need one:
   - Deleted lines: red background (`rgba(248,81,73,0.20)`), solid red left border (`#f85149`), strikethrough text.
   - Unchanged context lines have no highlight — just the default dark background.
 - Responsive: single column below 900px.
+- Do not hide the right sidebar on narrow screens. Stack it below the main content so the navigation and checklist still work.
 - No animations, no gradients, no decoration for decoration's sake.
+- Inline JavaScript must be browser-preview safe. Use `var`, function expressions, `Array.prototype.slice.call(...)`, and explicit parent traversal for `closest` behavior. Do not use optional chaining (`?.`), arrow functions, template strings, `const`, or `let` in the generated artifact. If one modern syntax token fails to parse in a preview/webview, every click handler on the page stops working.
+- The flow popup must also work when scripts are blocked by an iframe sandbox, such as SpecHub preview. Add a CSS-only `:target` fallback: each flow box links to `#file-N`, `.file:target` becomes a fixed modal-like panel, each file summary includes `<a class="target-close" href="#flow">×</a>`, and the page includes `<a class="target-backdrop" href="#flow">` styled with `body:has(.file:target)`.
+- For the CSS-only popup fallback, every file `<details>` must be rendered with `open` in the static HTML. Otherwise a sandboxed/no-JS flow click targets a collapsed `<details>` card and shows an empty white panel. The inline script may collapse all except the first file after load.
+- When the JS popup clones content into `.flow-popup-body`, clone only the `.file-body`, force nested `<details>` in the clone open, and remove any `.target-close` links from the clone. This prevents blank popup bodies and avoids showing CSS-fallback controls inside the JS popup.
+- For list bullets, prefer CSS pseudo-elements over text bullets. Correct examples:
+  ```css
+  .tldr li::before { content: '\2022'; }
+  .ba li::before { content: '\00b7'; }
+  ```
+  Incorrect examples:
+  ```css
+  .tldr li::before { content: "\\2022"; }
+  .ba li::before { content: "\\00b7"; }
+  ```
 
 ## Code Diff Rendering
 
@@ -128,16 +147,17 @@ Build with CSS flexbox boxes and arrow connectors. Each box:
 - Has a `data-popup="file-N"` attribute linking to the matching file's `<details id="file-N">` element.
 - **On click, opens a popup/modal** showing that file's code change. The user stays on the flow view and can click other boxes to compare changes. The clicked box gets an `.active` highlight.
 - Uses the same card styling (rounded, bordered) as the rest of the page.
+- Must be an `<a href="#file-N" data-popup="file-N">`. The script intercepts the click for the popup. If scripts are blocked, CSS targets the file card as a fallback popup.
 
-The popup is powered by a small inline `<script>` at the bottom of the page (see template). It clones the `.file-body` content from the matching `<details>` into a centered overlay. Close with ×, click outside, or Escape.
+The popup is powered by a small inline `<script>` at the bottom of the page (see template). It clones the `.file-body` content from the matching `<details>` into a centered overlay. The popup must close with ×, Escape, and any click outside `.flow-popup`.
 
 ```html
 <div class="flow">
-  <a data-popup="file-1" class="flow-box">functionX</a>
+  <a href="#file-1" data-popup="file-1" class="flow-box">functionX</a>
   <span class="flow-arrow">→</span>
-  <a data-popup="file-2" class="flow-box">functionY</a>
+  <a href="#file-2" data-popup="file-2" class="flow-box">functionY</a>
   <span class="flow-arrow">→</span>
-  <a data-popup="file-3" class="flow-box">functionZ</a>
+  <a href="#file-3" data-popup="file-3" class="flow-box">functionZ</a>
 </div>
 
 <!-- Popup container (one per page, populated by JS) -->
@@ -150,6 +170,55 @@ The popup is powered by a small inline `<script>` at the bottom of the page (see
     <div class="flow-popup-body" id="flow-popup-body"></div>
   </div>
 </div>
+```
+
+The flow script must guard missing elements before adding event listeners:
+
+```js
+var overlay = document.getElementById('flow-popup-overlay');
+var popupBody = document.getElementById('flow-popup-body');
+var closeBtn = document.getElementById('flow-popup-close');
+if (!overlay || !popupBody || !closeBtn) return;
+```
+
+The outside-click handler must check the popup panel, not only the overlay element:
+
+```js
+document.addEventListener('click', function(e) {
+  var clickedFlowBox = closestPopupTrigger(e.target);
+  if (overlay.classList.contains('open') && !popup.contains(e.target) && !clickedFlowBox) {
+    closePopup();
+  }
+});
+```
+
+Add a CSS-only fallback so popup still works when inline scripts are blocked:
+
+```css
+.file:target {
+  position: fixed;
+  inset: 32px;
+  z-index: 45;
+  overflow: auto;
+  max-width: 980px;
+  margin: 0 auto;
+  box-shadow: 0 20px 60px rgba(20,20,19,0.25);
+}
+```
+
+For the File Tour accordion, initialize cards after selecting popup elements:
+
+```js
+var fileCards = Array.prototype.slice.call(document.querySelectorAll('.file-tour details.file'));
+fileCards.forEach(function(file, index) {
+  if (index > 0) file.removeAttribute('open');
+  file.addEventListener('toggle', function() {
+    if (!file.open) return;
+    fileCards.forEach(function(otherFile) {
+      if (otherFile !== file) otherFile.removeAttribute('open');
+    });
+  });
+});
 ```
 
 ### Complex flow (5+ steps, branching, or loops)
