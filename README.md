@@ -9,6 +9,7 @@ Custom agent skills by Minh Tran. Personal workflow skills use the `mt:` prefix;
 | [explain-issue-html](./skills/explain-issue-html/) | Create standalone HTML explanation artifacts for confusing bugs, incidents, code behavior, API/cache/state issues, or technical problems |
 | [explain-pr-up](./skills/explain-pr-up/) | Create standalone HTML artifacts that present a PR for review with before/after diffs, risk map, and file-by-file tour |
 | [mt:commit-push-pr](./skills/mt:commit-push-pr/) | Commit, push, and open a PR in one shot |
+| [mt:squash-commits](./skills/mt:squash-commits/) | Consolidate a branch's many WIP commits into 2-3 clean, logical commits without changing the code |
 
 ## Install
 
